@@ -53,6 +53,12 @@ missing_values:
       method: "mode"
     categorical_features:
       method: "mode"
+  binary_encoding:
+    OnlineSecurity: "OnlineSecurity_numeric"
+    TechSupport: "TechSupport_numeric"
+  columns_to_impute:
+    numeric: ["TotalCharges"]
+    categorical: ["OnlineSecurity_numeric", "TechSupport_numeric"]
 
 feature_engineering:
   services_score:
@@ -90,6 +96,12 @@ feature_encoding:
     - "tenure_group"
     - "Vulnerability_Score"
     - "Services_Score"
+  ordinal_mappings:
+    tenure_group:
+      "New": 0
+      "Intermediate": 1
+      "Established": 2
+      "Loyal": 3
 
 feature_scaling:
   numeric_features:

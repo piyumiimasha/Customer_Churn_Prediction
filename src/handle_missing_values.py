@@ -89,20 +89,28 @@ def create_default_handler() -> MissingValueHandler:
     """
     Create a default handler with strategies based on the notebook implementation
     """
+    # Import config here to avoid circular imports
+    import sys
+    import os
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'utils'))
+    from config import config
+    
     handler = MissingValueHandler()
     
     # Add preprocessing strategy for TotalCharges
     handler.add_strategy(CustomPreprocessingStrategy(['TotalCharges']))
     
-    # Add mean imputation for numeric columns
-    handler.add_strategy(MeanImputationStrategy(['TotalCharges']))
+    # Add mean imputation for numeric columns from config
+    numeric_columns = config.get('missing_values.columns_to_impute.numeric', ['TotalCharges'])
+    handler.add_strategy(MeanImputationStrategy(numeric_columns))
     
-    # Add your binary column mappings here
-    binary_columns = {}
+    # Add binary column mappings from config
+    binary_columns = config.get('missing_values.binary_encoding', {})
     handler.add_strategy(BinaryEncodingStrategy(binary_columns))
     
-    # Add mode imputation for binary columns (after encoding)
-    handler.add_strategy(ModeImputationStrategy(['OnlineSecurity_numeric', 'TechSupport_numeric']))
+    # Add mode imputation for binary columns from config
+    categorical_columns = config.get('missing_values.columns_to_impute.categorical', [])
+    handler.add_strategy(ModeImputationStrategy(categorical_columns))
     
     return handler
 
