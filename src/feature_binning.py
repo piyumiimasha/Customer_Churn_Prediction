@@ -123,9 +123,15 @@ if __name__ == "__main__":
         print(df)
         print("\nApplying feature binning...")
         
-        # Create strategies
-        tenure_strategy = TenureBinningStrategy()
-        spend_strategy = SpendBinningStrategy()
+        # Create strategies with parameters
+        tenure_strategy = TenureBinningStrategy(
+            bins=[0, 12, 24, 48, 72],
+            labels=['New', 'Intermediate', 'Established', 'Loyal']
+        )
+        spend_strategy = SpendBinningStrategy(
+            bins=[0, 50, 100, 200, float('inf')],
+            labels=['Low', 'Medium', 'High', 'Extreme']
+        )
         
         # Create handler and add strategies
         handler = FeatureBinningHandler()

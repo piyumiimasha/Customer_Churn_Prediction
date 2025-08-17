@@ -62,11 +62,14 @@ class CustomPreprocessingStrategy(MissingValueHandlingStrategy):
         logging.info(f"Using custom preprocessing for columns: {self.columns}")
 
     def handle(self, df: pd.DataFrame) -> pd.DataFrame:
-        # Convert TotalCharges to numeric, replacing spaces with NaN
+        # Convert TotalCharges to numeric, replacing spaces and empty strings with NaN
         if 'TotalCharges' in df.columns:
-            df['TotalCharges'] = df['TotalCharges'].replace(' ', np.nan)
-            df['TotalCharges'] = df['TotalCharges'].astype(float)
-            logging.info("Converted TotalCharges to numeric format")
+            # Replace both spaces and empty strings with NaN
+            df['TotalCharges'] = df['TotalCharges'].replace([' ', ''], np.nan)
+            # Convert to numeric, handling any remaining non-numeric values
+            df['TotalCharges'] = pd.to_numeric(df['TotalCharges'], errors='coerce')
+            missing_count = df['TotalCharges'].isnull().sum()
+            logging.info(f"Converted TotalCharges to numeric format. Found {missing_count} missing values")
         return df
 
 class MissingValueHandler:
