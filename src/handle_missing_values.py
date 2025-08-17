@@ -43,10 +43,6 @@ class ModeImputationStrategy(MissingValueHandlingStrategy):
 
 class BinaryEncodingStrategy(MissingValueHandlingStrategy):
     def __init__(self, columns: Dict[str, str]):
-        """
-        Initialize with a dictionary mapping source columns to target columns
-        e.g., {'OnlineSecurity': 'OnlineSecurity_numeric'}
-        """
         self.columns = columns
         logging.info(f"Using binary encoding for columns: {list(columns.keys())}")
 
@@ -74,19 +70,14 @@ class CustomPreprocessingStrategy(MissingValueHandlingStrategy):
         return df
 
 class MissingValueHandler:
-    """
-    Main class to handle missing values in the customer churn dataset
-    """
     def __init__(self):
         self.strategies = []
         
     def add_strategy(self, strategy: MissingValueHandlingStrategy):
-        """Add a missing value handling strategy to the pipeline"""
         self.strategies.append(strategy)
         return self
 
     def handle_missing_values(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Apply all registered strategies in sequence"""
         for strategy in self.strategies:
             df = strategy.handle(df.copy())
         return df
@@ -103,11 +94,8 @@ def create_default_handler() -> MissingValueHandler:
     # Add mean imputation for numeric columns
     handler.add_strategy(MeanImputationStrategy(['TotalCharges']))
     
-    # Add binary encoding strategy for Yes/No columns
-    binary_columns = {
-        'OnlineSecurity': 'OnlineSecurity_numeric',
-        'TechSupport': 'TechSupport_numeric'
-    }
+    # Add your binary column mappings here
+    binary_columns = {}
     handler.add_strategy(BinaryEncodingStrategy(binary_columns))
     
     # Add mode imputation for binary columns (after encoding)

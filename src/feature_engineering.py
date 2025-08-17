@@ -12,11 +12,14 @@ class FeatureEngineeringStrategy(ABC):
 
 class ServicesScoreStrategy(FeatureEngineeringStrategy):
     
-    def __init__(self, service_columns: Optional[List[str]] = None):
-        self.service_columns = service_columns or [
-            'OnlineSecurity', 'TechSupport', 
-            'OnlineBackup', 'DeviceProtection'
-        ]
+    def __init__(self, service_columns: List[str]):
+        """
+        Initialize services score strategy
+        
+        Args:
+            service_columns: List of service columns to calculate score from
+        """
+        self.service_columns = service_columns
     
     def engineer_feature(self, df: pd.DataFrame) -> pd.DataFrame:
         try:
@@ -40,8 +43,21 @@ class ServicesScoreStrategy(FeatureEngineeringStrategy):
 
 class VulnerabilityScoreStrategy(FeatureEngineeringStrategy):
     
-    def __init__(self, tenure_threshold: int = 12):
+    def __init__(self, tenure_threshold: int, weights: Dict[str, int]):
+        """
+        Initialize vulnerability score strategy
+        
+        Args:
+            tenure_threshold: Threshold for considering a customer new
+            weights: Dictionary of weights for different factors:
+                    - senior_citizen: Weight for senior citizen status
+                    - no_partner: Weight for no partner
+                    - no_dependents: Weight for no dependents
+                    - month_to_month: Weight for month-to-month contract
+                    - new_customer: Weight for new customer
+        """
         self.tenure_threshold = tenure_threshold
+        self.weights = weights
         
     def engineer_feature(self, df: pd.DataFrame) -> pd.DataFrame:
         try:
@@ -56,11 +72,11 @@ class VulnerabilityScoreStrategy(FeatureEngineeringStrategy):
             
             # Calculate vulnerability score
             df['Vulnerability_Score'] = (
-                senior_citizen_numeric * 2 +  # Senior citizen: 2 points
-                (df['Partner'] == 'No').astype(int) +  # No partner: 1 point
-                (df['Dependents'] == 'No').astype(int) +  # No dependents: 1 point
-                (df['Contract'] == 'Month-to-month').astype(int) * 2 +  # Month-to-month: 2 points
-                (df['tenure'] < self.tenure_threshold).astype(int) * 2  # New customer: 2 points
+                senior_citizen_numeric * self.weights['senior_citizen'] +  # Senior citizen
+                (df['Partner'] == 'No').astype(int) * self.weights['no_partner'] +  # No partner
+                (df['Dependents'] == 'No').astype(int) * self.weights['no_dependents'] +  # No dependents
+                (df['Contract'] == 'Month-to-month').astype(int) * self.weights['month_to_month'] +  # Month-to-month
+                (df['tenure'] < self.tenure_threshold).astype(int) * self.weights['new_customer']  # New customer
             )
             
             logging.info("Successfully calculated Vulnerability Score")

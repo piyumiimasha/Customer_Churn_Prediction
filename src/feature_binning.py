@@ -11,9 +11,16 @@ class FeatureBinningStrategy(ABC):
         pass
 
 class TenureBinningStrategy(FeatureBinningStrategy):
-    def __init__(self, bins: Optional[List[int]] = None, labels: Optional[List[str]] = None):
-        self.bins = bins or [0, 12, 24, 48, 72]
-        self.labels = labels or ['New', 'Intermediate', 'Established', 'Loyal']
+    def __init__(self, bins: List[int], labels: List[str]):
+        """
+        Initialize tenure binning strategy
+        
+        Args:
+            bins: List of bin edges for tenure binning
+            labels: Labels for the tenure bins
+        """
+        self.bins = bins
+        self.labels = labels
         logging.info("Initialized tenure binning strategy")
 
     def bin_feature(self, df: pd.DataFrame, column: str = 'tenure') -> pd.DataFrame:
@@ -42,9 +49,16 @@ class TenureBinningStrategy(FeatureBinningStrategy):
             raise
 
 class SpendBinningStrategy(FeatureBinningStrategy):
-    def __init__(self, bins: Optional[List[float]] = None, labels: Optional[List[str]] = None):
-        self.bins = bins or [0, 50, 100, 200, float('inf')]
-        self.labels = labels or ['Low', 'Medium', 'High', 'Extreme']
+    def __init__(self, bins: List[float], labels: List[str]):
+        """
+        Initialize spend binning strategy
+        
+        Args:
+            bins: List of bin edges for spend binning
+            labels: Labels for the spend bins
+        """
+        self.bins = bins
+        self.labels = labels
         logging.info("Initialized spend binning strategy")
     
     def bin_feature(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
