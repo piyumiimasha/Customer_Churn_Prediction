@@ -1,40 +1,99 @@
-import pandas as pd
 import logging
-from typing import List
+import pandas as pd
+from abc import ABC, abstractmethod
+from typing import List, Dict, Union, Optional
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-class CustomBinningStrategy:
-    
-    def __init__(self):
-        
-        self.bins = [0, 12, 24, 48, 72]
-        self.labels = ['New', 'Intermediate', 'Established', 'Loyal']
+class FeatureBinningStrategy(ABC):
+    @abstractmethod
+    def bin_feature(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
+        pass
+
+class TenureBinningStrategy(FeatureBinningStrategy):
+    def __init__(self, bins: Optional[List[int]] = None, labels: Optional[List[str]] = None):
+        self.bins = bins or [0, 12, 24, 48, 72]
+        self.labels = labels or ['New', 'Intermediate', 'Established', 'Loyal']
         logging.info("Initialized tenure binning strategy")
 
-    def bin_feature(self, df: pd.DataFrame, tenure_column: str = 'tenure') -> pd.DataFrame:
-        
+    def bin_feature(self, df: pd.DataFrame, column: str = 'tenure') -> pd.DataFrame:
         try:
             # Create tenure groups using the predefined bins and labels
-            df['tenure_group'] = pd.cut(
-                df[tenure_column],
+            df = df.copy()
+            df[f'{column}_group'] = pd.cut(
+                df[column],
                 bins=self.bins,
                 labels=self.labels,
                 right=True,
                 include_lowest=True
             )
             
-            logging.info(f"Successfully binned tenure into {len(self.labels)} categories")
-            logging.info(f"Tenure group distribution:\n{df['tenure_group'].value_counts()}")
+            logging.info(f"Successfully binned {column} into {len(self.labels)} categories")
+            logging.info(f"{column} group distribution:\n{df[f'{column}_group'].value_counts()}")
             
-            # Drop original tenure column as done in the notebook
-            df.drop(columns=[tenure_column], inplace=True)
-            logging.info(f"Dropped original {tenure_column} column")
+            # Drop original column as done in the notebook
+            df.drop(columns=[column], inplace=True)
+            logging.info(f"Dropped original {column} column")
             
             return df
             
         except Exception as e:
-            logging.error(f"Error during tenure binning: {str(e)}")
+            logging.error(f"Error during {column} binning: {str(e)}")
+            raise
+
+class SpendBinningStrategy(FeatureBinningStrategy):
+    def __init__(self, bins: Optional[List[float]] = None, labels: Optional[List[str]] = None):
+        self.bins = bins or [0, 50, 100, 200, float('inf')]
+        self.labels = labels or ['Low', 'Medium', 'High', 'Extreme']
+        logging.info("Initialized spend binning strategy")
+    
+    def bin_feature(self, df: pd.DataFrame, column: str) -> pd.DataFrame:
+        try:
+            df = df.copy()
+            df[f'{column}_category'] = pd.cut(
+                df[column],
+                bins=self.bins,
+                labels=self.labels,
+                right=True,
+                include_lowest=True
+            )
+            
+            logging.info(f"Successfully binned {column} into {len(self.labels)} categories")
+            logging.info(f"{column} category distribution:\n{df[f'{column}_category'].value_counts()}")
+            
+            # Drop original column
+            df.drop(columns=[column], inplace=True)
+            logging.info(f"Dropped original {column} column")
+            
+            return df
+            
+        except Exception as e:
+            logging.error(f"Error during {column} binning: {str(e)}")
+            raise
+
+class FeatureBinningHandler:
+    def __init__(self, strategies: Optional[Dict[str, FeatureBinningStrategy]] = None):
+        self.strategies = strategies or {}
+    
+    def add_strategy(self, column: str, strategy: FeatureBinningStrategy):
+        """Add a new feature binning strategy"""
+        self.strategies[column] = strategy
+    
+    def bin_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        try:
+            df = df.copy()
+            
+            for column, strategy in self.strategies.items():
+                if column in df.columns:
+                    df = strategy.bin_feature(df, column)
+                else:
+                    logging.warning(f"Column {column} not found in DataFrame")
+                
+            logging.info("All feature binning strategies applied successfully")
+            return df
+            
+        except Exception as e:
+            logging.error(f"Error in feature binning: {str(e)}")
             raise
 
 if __name__ == "__main__":
@@ -42,18 +101,28 @@ if __name__ == "__main__":
     try:
         # Sample data
         df = pd.DataFrame({
-            'tenure': [1, 15, 30, 50, 70]
+            'tenure': [1, 15, 30, 50, 70],
+            'MonthlyCharges': [30, 45, 80, 120, 250]
         })
         
         print("Original Data:")
         print(df)
+        print("\nApplying feature binning...")
         
-        # Create and apply tenure binning
-        binner = CustomBinningStrategy()
-        df = binner.bin_feature(df)
+        # Create strategies
+        tenure_strategy = TenureBinningStrategy()
+        spend_strategy = SpendBinningStrategy()
         
-        print("\nData after tenure binning:")
-        print(df)
+        # Create handler and add strategies
+        handler = FeatureBinningHandler()
+        handler.add_strategy('tenure', tenure_strategy)
+        handler.add_strategy('MonthlyCharges', spend_strategy)
+        
+        # Apply feature binning
+        df_binned = handler.bin_features(df)
+        
+        print("\nBinned features:")
+        print(df_binned)
         
     except Exception as e:
         logging.error(f"Error in example: {str(e)}")
