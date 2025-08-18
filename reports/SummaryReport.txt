@@ -1,0 +1,100 @@
+Bivariate Analysis
+
+1.Demographic Features
+Gender (Chi² = 0.48, p = 0.486): No significant relationship with churn
+SeniorCitizen (Chi² = 159.43, p < 0.001): Senior citizens show higher churn rates
+        
+Partner (Chi² = 158.73, p < 0.001): Customers with partners show lower churn rates
+Dependents (Chi² = 189.13, p < 0.001): Customers with dependents have significantly lower churn rates
+
+Strategic Insight: Family-oriented customers are more stable, suggesting family plans or bundled services could improve retention.
+
+
+2.Account Info Features
+
+Contract Type (Chi² = 1,184.60, p < 0.001)
+Strongest predictor of churn:
+
+    Month-to-month: Very high churn rate (~43%)
+    One-year: Moderate churn rate (~11%)
+    Two-year: Lowest churn rate (~3%)
+
+Payment (Chi² = 648.14, p < 0.001)
+    Electronic check: Highest churn risk payment method
+    Automatic payment methods: Lower churn rates
+
+Paperless billing (Chi² = 258.28, p < 0.001): 
+    Customers with paperless billing show higher churn rates
+
+Strategic Insight: Contract length is the most powerful predictor of churn. Incentivizing longer contracts could dramatically improve retention.
+
+3.Service Features
+
+Internet Service (Chi² = 732.31, p < 0.001)
+
+    DSL customers: Lowest churn rate (~20%)
+    Fiber optic customers: Moderate churn rate (~42%)
+    No internet service: Extremely low churn rate (~7%)
+
+Strategic Insight: Fiber optic customers represent the highest churn risk segment, requiring targeted retention strategies.
+
+Online Services Impact
+
+    OnlineSecurity (Chi² = 850.00, p < 0.001): Customers without online security show dramatically higher churn rates
+    OnlineBackup (Chi² = 601.81, p < 0.001): Similar pattern - lack of backup services correlates with higher churn
+    TechSupport (Chi² = 828.20, p < 0.001): Absence of tech support strongly predicts churn
+
+Strategic Insight: Value-added services act as retention tools. Customers without these services are significantly more likely to churn.
+
+Entertainment Services
+
+    StreamingTV (Chi² = 374.20, p < 0.001): Moderate impact on churn
+    StreamingMovies (Chi² = 375.66, p < 0.001): Similar moderate impact
+    Both services show higher retention for customers who subscribe
+
+
+Correlation Matrix Analysis
+
+Tenure and Churn (-0.35) - longer-tenured customers are less likely to churn
+TotalCharges and Churn (-0.20) - customers with higher total charges are less likely to churn
+
+Implications:
+
+Customer retention improves with tenure, suggesting importance of early customer satisfaction
+Monthly charges show weak correlation with churn, indicating price sensitivity may not be the primary driver
+
+
+Feature Engineering Success
+custom feature engineering revealed two powerful predictive indicators:
+
+**Services Score (0-4 scale):**Chi² = 338.97
+- Measures customer engagement with add-on services
+- **Distribution:** 40% of customers have 0 services, only 7% have all 4 services
+- **Business Impact:** Higher service adoption correlates with lower churn risk
+
+**Vulnerability Score (0-8 scale):**Chi² = 1307.20,
+- Composite risk metric based on customer demographics and contract type
+- **Risk Categories:**
+  - 0-1: Low vulnerability (married, long-term contracts)
+  - 2-4: Moderate vulnerability 
+  - 5-8: High vulnerability (seniors, single, month-to-month contracts)
+
+
+  Model Performance & Reliability
+
+**Model Comparison Results:**
+- **Random Forest:** Robust performance with excellent interpretability
+- **XGBoost:** Superior predictive accuracy with gradient boosting
+- **CatBoost:** Strong performance on categorical features
+
+**Key Performance Metrics:**
+- **Accuracy:** 90%+ across all models
+- **ROC-AUC:** 0.85+ indicating strong predictive power
+- **Feature Importance:** Consistent ranking across models validates findings
+
+**Most Important Predictive Features:**
+1. Contract type and tenure
+2. Monthly charges and total charges
+3. Services Score and Vulnerability Score
+4. Internet service type
+5. Payment method
